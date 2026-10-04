@@ -1,0 +1,39 @@
+using UnityEngine;
+
+// Attach directly to the leaderboard PANEL itself (not the whole Canvas) —
+// shrinks only this one panel on tablet-shaped screens (iPads especially),
+// leaving every other UI element, and phones entirely, completely
+// untouched. Scoped narrowly since the leaderboard was the only panel
+// actually reported as too tall/oversized on tablets.
+public class TabletLeaderboardScaler : MonoBehaviour
+{
+    [Header("Detection")]
+    [Tooltip("Screens with an aspect ratio (long side / short side) BELOW this are treated as tablet-shaped. Typical phones are ~2.0-2.2, iPads are ~1.33-1.5 — 1.6 is a safe dividing line.")]
+    public float tabletAspectRatioThreshold = 1.6f;
+
+    [Header("Tablet Shrink")]
+    [Tooltip("Uniform scale applied to this panel ONLY on tablet-shaped screens. 0.75 = 75% size.")]
+    [Range(0.4f, 1f)]
+    public float tabletScaleMultiplier = 0.75f;
+
+    [Tooltip("Vertical offset (in the panel's local units) applied ONLY on tablet-shaped screens, after scaling. Positive moves up, negative moves down.")]
+    public float tabletVerticalOffset = 0f;
+
+    void Awake()
+    {
+        float longSide = Mathf.Max(Screen.width, Screen.height);
+        float shortSide = Mathf.Min(Screen.width, Screen.height);
+        float aspectRatio = longSide / shortSide;
+
+        bool isTablet = aspectRatio < tabletAspectRatioThreshold;
+        if (!isTablet) return; // phones: leave this panel exactly as designed
+
+        transform.localScale *= tabletScaleMultiplier;
+
+        RectTransform rect = transform as RectTransform;
+        if (rect != null)
+            rect.anchoredPosition += new Vector2(0f, tabletVerticalOffset);
+        else
+            transform.position += new Vector3(0f, tabletVerticalOffset, 0f);
+    }
+}
